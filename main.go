@@ -10,6 +10,7 @@ import (
 	"strconv"
 )
 
+// TODO move CircularMask stuff to own file
 type CircularMask struct {
 	source image.Image
 	center image.Point
@@ -41,26 +42,8 @@ func main() {
 		return
 	}
 
+	// load input image
 	img_path := os.Args[1]
-
-	x, err := strconv.Atoi(os.Args[2])
-	if err != nil {
-		fmt.Println("Not a number:", os.Args[2])
-		return
-	}
-
-	y, err := strconv.Atoi(os.Args[3])
-	if err != nil {
-		fmt.Println("Not a number:", os.Args[3])
-		return
-	}
-
-	r, err := strconv.Atoi(os.Args[4])
-	if err != nil {
-		fmt.Println("Not a number:", os.Args[4])
-		return
-	}
-
 	img, err := func(path string) (*image.NRGBA, error) {
 		file, err := os.Open(path)
 		defer file.Close()
@@ -73,15 +56,34 @@ func main() {
 			return nil, err
 		}
 
+		// input may not be NRGBA, so convert it
 		bounds := img.Bounds()
 		nrgba := image.NewNRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
 		draw.Draw(nrgba, nrgba.Bounds(), img, bounds.Min, draw.Src)
 
 		return nrgba, nil
 	}(img_path)
-
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+
+	// load numbers
+	x, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Println(err, os.Args[2])
+		return
+	}
+
+	y, err := strconv.Atoi(os.Args[3])
+	if err != nil {
+		fmt.Println(err, os.Args[3])
+		return
+	}
+
+	r, err := strconv.Atoi(os.Args[4])
+	if err != nil {
+		fmt.Println(err, os.Args[4])
 		return
 	}
 
@@ -95,7 +97,10 @@ func main() {
 	defer output.Close()
 	if err != nil {
 		fmt.Println("Failed to open file", img_path+".masked")
+		fmt.Println(err)
 		return
 	}
 	png.Encode(output, circle)
+
+	fmt.Println("Saved", img_path+".masked")
 }
